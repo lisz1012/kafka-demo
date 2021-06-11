@@ -1,14 +1,20 @@
 package com.lisz.kafka;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
+import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.junit.Test;
 
+import java.time.Duration;
+import java.util.Arrays;
+import java.util.Iterator;
 import java.util.Properties;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -59,14 +65,35 @@ public class Lesson01 {
 		props.setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG,
 				"hadoop-02:9092,hadoop-03:9092,hadoop-04:9092");
 		props.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,
-				StringSerializer.class.getName());
+				StringDeserializer.class.getName());
 		props.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
-				StringSerializer.class.getName());
-		props.setProperty(ConsumerConfig.GROUP_ID_CONFIG, "g1");
+				StringDeserializer.class.getName());
+		props.setProperty(ConsumerConfig.GROUP_ID_CONFIG, "g3");
 		props.setProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+		// 自动提交容易造成丢数据和重复消费数据.
 		props.setProperty(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "true");
+		props.setProperty(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, "15000");
+//		// 拉取数据：弹性的、按需的，拉取多少？
+//		props.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "5000");
 
 		KafkaConsumer<String, String> consumer = new KafkaConsumer<String, String>(props);
+		consumer.subscribe(Arrays.asList("msb-items"));
+		while (true) {
+			// 0-n 条, 微批的感觉
+			ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(0));
+			if (!records.isEmpty()) {
+				System.out.println("--------------" + records.count() + "--------------");
+				Iterator<ConsumerRecord<String, String>> iterator = records.iterator();
+				while (iterator.hasNext()) {
+					// 因为一个consumer可以消费多个分区，但是一个分区只能给一个组里的一个consumer消费
+					ConsumerRecord<String, String> record = iterator.next();
+					int partition = record.partition();
+					long offset = record.offset();
+					System.out.println("key: " + record.key() + " val: " + record.value()
+							+ " partition: " + partition + " offset: " + offset);
+				}
+			}
+		}
 	}
 
 }
