@@ -72,7 +72,7 @@ public class Lesson01 {
 		props.setProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		// 自动提交容易造成丢数据和重复消费数据. 一个运行的consumer程序，自己会维护消费进度
 		// poll的时候都能够poll对，不会重复的。一旦自动提交但是是异步的，有可能：1.挂的时候还没提交，
-		// 则重复消费上次提交到挂之前消费的。 2。poll出来的这一批还没消费完，就提交了，然后挂了，
+		// 则重复消费上次提交到挂之前消费的。 2。poll出来的这一批还没消费完，就异步提交了，然后挂了，
 		// 则消费位置到提交位置之间的消息就丢失了
 		props.setProperty(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "true");
 		props.setProperty(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, "15000");
