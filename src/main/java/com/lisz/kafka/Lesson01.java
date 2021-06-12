@@ -1,21 +1,17 @@
 package com.lisz.kafka;
 
-import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.clients.consumer.ConsumerRecords;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.clients.consumer.*;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
+import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.junit.Test;
 
 import java.time.Duration;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.Properties;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
@@ -80,12 +76,37 @@ public class Lesson01 {
 //		props.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "5000");
 
 		KafkaConsumer<String, String> consumer = new KafkaConsumer<String, String>(props);
-		consumer.subscribe(Arrays.asList("msb-items"));
+		// Kafka的Consumer回动态负载均衡：当Consumer个数有变化的时候可能会让出或者得到某些分区
+		consumer.subscribe(Arrays.asList("msb-items"), new ConsumerRebalanceListener() {
+			@Override
+			public void onPartitionsRevoked(Collection<TopicPartition> partitions) {
+				System.out.println("---onPartitionsRevoked");
+				for (TopicPartition tp : partitions) {
+					System.out.println(tp.partition());
+				}
+			}
+
+			@Override
+			public void onPartitionsAssigned(Collection<TopicPartition> partitions) {
+				System.out.println("---onPartitionsAssigned");
+				for (TopicPartition tp : partitions) {
+					System.out.println(tp.partition());
+				}
+			}
+		});
 		while (true) {
 			// 0-n 条, 微批的感觉
-			ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(0));
+			ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(1000));
 			if (!records.isEmpty()) {
 				System.out.println("--------------" + records.count() + "--------------");
+				Set<TopicPartition> partitions = records.partitions(); //每次取多个分区的数据
+				// 且每个分区内的诗句是有序的
+				for (TopicPartition partition : partitions) {
+					List<ConsumerRecord<String, String>> pRecords = records.records(partition);
+					// 在一个微批里，按分区获取poll回来的数据
+					//线性分区处理，还可以多线程并行按分区处理
+				}
+
 				Iterator<ConsumerRecord<String, String>> iterator = records.iterator();
 				while (iterator.hasNext()) {
 					// 因为一个consumer可以消费多个分区，但是一个分区只能给一个组里的一个consumer消费
