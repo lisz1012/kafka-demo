@@ -96,26 +96,54 @@ public class Lesson01 {
 		});
 		while (true) {
 			// 0-n 条, 微批的感觉
+			/*
+			常识：如果想多线程处理多分区
+			每poll一次用一个语义：一个job启动，
+			一个job用多线程并行处理分区，且job应该被控制是串行的
+			 */
 			ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(1000));
 			if (!records.isEmpty()) {
 				System.out.println("--------------" + records.count() + "--------------");
 				Set<TopicPartition> partitions = records.partitions(); //每次取多个分区的数据
-				// 且每个分区内的诗句是有序的
+				// 且每个分区内的诗句是有序的。
+				/*
+				如果手动提交offset：
+				1。按每条记录（消息进度）同步提交
+				2。按分区粒度处理
+				3。按当前这一poll
+				思考：如果在多线程下：
+				1。以上1、3的方式不用多线程
+				2。以上2的方式最容易想到多线程，每个分区一个线程来处理，有没有问题？
+				   不会啊，不同的分区各自有各自的offset
+				 */
 				for (TopicPartition partition : partitions) {
 					List<ConsumerRecord<String, String>> pRecords = records.records(partition);
 					// 在一个微批里，按分区获取poll回来的数据
 					//线性分区处理，还可以多线程并行按分区处理
+					Iterator<ConsumerRecord<String, String>> piter = pRecords.iterator();
+					while (piter.hasNext()){
+						ConsumerRecord<String, String> record = piter.next();
+						long offset = record.offset();
+						System.out.println("key: " + record.key() + " val: " + record.value()
+								+ " partition: " + partition.partition() + " offset: " + offset);
+
+						TopicPartition topicPartition = new TopicPartition(record.topic(), partition.partition());
+						OffsetAndMetadata offsetAndMetadata = new OffsetAndMetadata(offset);
+						Map<TopicPartition, OffsetAndMetadata> map = new HashMap<>();
+						map.put(topicPartition, offsetAndMetadata);
+						consumer.commitSync(map); //以一条记录为粒度提交offset, 最安全的
+					}
 				}
 
-				Iterator<ConsumerRecord<String, String>> iterator = records.iterator();
-				while (iterator.hasNext()) {
-					// 因为一个consumer可以消费多个分区，但是一个分区只能给一个组里的一个consumer消费
-					ConsumerRecord<String, String> record = iterator.next();
-					int partition = record.partition();
-					long offset = record.offset();
-					System.out.println("key: " + record.key() + " val: " + record.value()
-							+ " partition: " + partition + " offset: " + offset);
-				}
+//				Iterator<ConsumerRecord<String, String>> iterator = records.iterator();
+//				while (iterator.hasNext()) {
+//					// 因为一个consumer可以消费多个分区，但是一个分区只能给一个组里的一个consumer消费
+//					ConsumerRecord<String, String> record = iterator.next();
+//					int partition = record.partition();
+//					long offset = record.offset();
+//					System.out.println("key: " + record.key() + " val: " + record.value()
+//							+ " partition: " + partition + " offset: " + offset);
+//				}
 			}
 		}
 	}
