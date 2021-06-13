@@ -133,7 +133,21 @@ public class Lesson01 {
 						map.put(topicPartition, offsetAndMetadata);
 						consumer.commitSync(map); //以一条记录为粒度提交offset, 最安全的
 					}
+					long poff = pRecords.get(pRecords.size() - 1).offset();
+					OffsetAndMetadata offsetAndMetadata = new OffsetAndMetadata(poff);
+					Map<TopicPartition, OffsetAndMetadata> map = new HashMap<>();
+					map.put(partition, offsetAndMetadata);
+					consumer.commitSync(map); //分区粒度提交offset。第二种
+					/*
+					因为你都分区了，拿到了分区的数据集，可能期望的是先对数据整体加工
+					小问题会出现：取得最后一条记录的那个偏移量，放到offset里
+					Kafka很傻，那拿走多少我不关心，你告诉我最后一个小的offset
+					多线程维护两端的offset，当前这一批要么都成功，要么都失败
+
+					 */
 				}
+
+				consumer.commitSync(); //一整个poll批次为单位提交offset，第三种
 
 //				Iterator<ConsumerRecord<String, String>> iterator = records.iterator();
 //				while (iterator.hasNext()) {
