@@ -128,7 +128,7 @@ public class Lesson01 {
 								+ " partition: " + partition.partition() + " offset: " + offset);
 
 						TopicPartition topicPartition = new TopicPartition(record.topic(), partition.partition());
-						OffsetAndMetadata offsetAndMetadata = new OffsetAndMetadata(offset);
+						OffsetAndMetadata offsetAndMetadata = new OffsetAndMetadata(offset + 1);
 						Map<TopicPartition, OffsetAndMetadata> map = new HashMap<>();
 						map.put(topicPartition, offsetAndMetadata);
 						consumer.commitSync(map); //以一条记录为粒度提交offset, 最安全的
