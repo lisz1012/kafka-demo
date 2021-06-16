@@ -43,13 +43,13 @@ public class Lesson01 {
 		for (int i = 0; i < 3; i++) {
 			for (int j = 0; j < 3; j++) {
 				ProducerRecord<String, String> record
-						= new ProducerRecord<>(topic,"item" + j, "val" + i);
+						= new ProducerRecord<>(topic, "item" + j, "val" + i);
 				Future<RecordMetadata> send = producer.send(record);
 				RecordMetadata rm = send.get();
 				int partition = rm.partition();
 				long offset = rm.offset();
-				System.out.println("key: " + record.key() + " val: " + record.value() +
-								  " partition: " + partition + " offset: " + offset);
+				System.out.println("key: " + record.key() + " val: " + record.value()
+						+ " partition: " + partition + " offset: " + offset);
 			}
 		}
 	}
@@ -121,7 +121,7 @@ public class Lesson01 {
 					// 在一个微批里，按分区获取poll回来的数据
 					//线性分区处理，还可以多线程并行按分区处理
 					Iterator<ConsumerRecord<String, String>> piter = pRecords.iterator();
-					while (piter.hasNext()){
+					while (piter.hasNext()) {
 						ConsumerRecord<String, String> record = piter.next();
 						long offset = record.offset();
 						System.out.println("key: " + record.key() + " val: " + record.value()
