@@ -31,6 +31,7 @@ public class Lesson01 {
 				StringSerializer.class.getName());
 		props.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
 				StringSerializer.class.getName());
+		props.setProperty(ProducerConfig.ACKS_CONFIG, "0"); //默认值是1
 
 		KafkaProducer<String, String> producer = new KafkaProducer<String, String>(props);
 
