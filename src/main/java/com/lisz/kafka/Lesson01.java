@@ -31,7 +31,7 @@ public class Lesson01 {
 				StringSerializer.class.getName());
 		props.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
 				StringSerializer.class.getName());
-		props.setProperty(ProducerConfig.ACKS_CONFIG, "0"); //默认值是1
+		props.setProperty(ProducerConfig.ACKS_CONFIG, "0"); //默认值是1. 0是放到socket缓冲区就走，all是所有isr都确认了才走
 
 		KafkaProducer<String, String> producer = new KafkaProducer<String, String>(props);
 
