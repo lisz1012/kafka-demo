@@ -10,6 +10,7 @@ import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
@@ -31,7 +32,7 @@ public class Lesson01 {
 				StringSerializer.class.getName());
 		props.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
 				StringSerializer.class.getName());
-		props.setProperty(ProducerConfig.ACKS_CONFIG, "0"); //默认值是1. 0是放到socket缓冲区就走，all是所有isr都确认了才走
+		props.setProperty(ProducerConfig.ACKS_CONFIG, "-1"); //默认值是1. 0是放到socket缓冲区就走，all是所有isr都确认了才走
 
 		KafkaProducer<String, String> producer = new KafkaProducer<String, String>(props);
 
@@ -41,7 +42,7 @@ public class Lesson01 {
 		三种商品，每种商品有线性的3个ID，相同的key最好去到同一个分区
 		 */
 
-		for (int i = 0; i < 3; i++) {
+		for (int i = 0; i < 30; i++) {
 			for (int j = 0; j < 3; j++) {
 				ProducerRecord<String, String> record
 						= new ProducerRecord<>(topic, "item" + j, "val" + i);
@@ -50,7 +51,9 @@ public class Lesson01 {
 				int partition = rm.partition();
 				long offset = rm.offset();
 				System.out.println("key: " + record.key() + " val: " + record.value()
-						+ " partition: " + partition + " offset: " + offset);
+						+ " partition: " + partition + " offset: " + offset
+						+ " timestamp: " + rm.timestamp());
+				Thread.sleep(1000);
 			}
 		}
 	}
@@ -65,7 +68,7 @@ public class Lesson01 {
 				StringDeserializer.class.getName());
 		props.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
 				StringDeserializer.class.getName());
-		props.setProperty(ConsumerConfig.GROUP_ID_CONFIG, "g3");
+		props.setProperty(ConsumerConfig.GROUP_ID_CONFIG, "g1");
 		props.setProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		// 自动提交容易造成丢数据和重复消费数据. 一个运行的consumer程序，自己会维护消费进度
 		// poll的时候都能够poll对，不会重复的。一旦自动提交但是是异步的，有可能：1.挂的时候还没提交，
@@ -95,6 +98,40 @@ public class Lesson01 {
 				}
 			}
 		});
+
+
+		Map<TopicPartition, Long> tts = new HashMap<>();
+		Set<TopicPartition> assignment = consumer.assignment();
+		while (assignment.isEmpty()) { // 是个回调，执行到下面的时候可能还没有assign上
+			consumer.poll(Duration.ofMillis(100));
+			assignment = consumer.assignment();
+		}
+
+		//自己填充HashMap，为每个分区倒退时间
+		/*
+			1.通过时间换算出offset，再通过seek来自定义偏移。seek是最值钱的
+			2。如果自己维护offset维护持久化。通过seek完成定点取
+		 */
+		for (TopicPartition topicPartition : assignment) {
+			tts.put(topicPartition, 1623990624536L);
+		}
+		// 通过consumer的api取回timeindex的数据
+		Map<TopicPartition, OffsetAndTimestamp> offsetTime = consumer.offsetsForTimes(tts);
+		for (TopicPartition topicPartition : assignment) {
+			//按照时间换算offset，本质跟从Redis或者MySQL中读取回来是一样的。
+			//seek产生的空洞会被Kafka认为其中的数据已经消费，LAG=0
+			long offset = offsetTime.get(topicPartition).offset(); // 因为被设定的时间之后可能没有数据
+			System.out.println("Offset: " + offset);
+			consumer.seek(topicPartition, offset); //通过seek修正偏移
+		}
+
+//		try {
+//			System.in.read();
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
+
+
 		while (true) {
 			// 0-n 条, 微批的感觉
 			/*
@@ -125,8 +162,10 @@ public class Lesson01 {
 					while (piter.hasNext()) {
 						ConsumerRecord<String, String> record = piter.next();
 						long offset = record.offset();
+						long timestamp = record.timestamp();
 						System.out.println("key: " + record.key() + " val: " + record.value()
-								+ " partition: " + partition.partition() + " offset: " + offset);
+								+ " partition: " + partition.partition() + " offset: " + offset
+								+ " timestamp: " + timestamp);
 
 						TopicPartition topicPartition = new TopicPartition(record.topic(), partition.partition());
 						OffsetAndMetadata offsetAndMetadata = new OffsetAndMetadata(offset + 1);
