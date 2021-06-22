@@ -16,7 +16,7 @@ public class Lesson02 {
 		conf.setProperty(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "16384");
 		conf.setProperty(ProducerConfig.PARTITIONER_CLASS_CONFIG, DefaultPartitioner.class.getName());
 		conf.setProperty(ProducerConfig.BATCH_SIZE_CONFIG, "16384"); //16k，要调整，分析msg大小，尽量触发批次发送，减少内存碎片和系统调用的复杂度。因为batch装不下一条大的记录的时候，就会高出一个超过config大小的batch，产生碎片
-		// 非阻塞的时候才会牵扯到生产和IO速度不对称的情况
+		// 按时间分批次。非阻塞的时候才会牵扯到生产和IO速度不对称的情况。尽量以batch的方式向broker推送，要么batch满了，要么IO别停在那里发小量的数据，从而产生更多的网络交互
 		conf.setProperty(ProducerConfig.LINGER_MS_CONFIG, "0"); //
 		conf.setProperty(ProducerConfig.MAX_REQUEST_SIZE_CONFIG, "1048576");
 		conf.setProperty(ProducerConfig.BUFFER_MEMORY_CONFIG, "33554432");
