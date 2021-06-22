@@ -26,6 +26,10 @@ public class Lesson02 {
 		// Batches打包之后先放到 InFlightRequests 然后通过客户端发出去，可以挤压5个没返回ack的请求
 		// 单词请求同步阻塞的时候这一个配置无意义。另一种情况是请求的数据量比较大，慢，而broker只返回一个很小的ack，快，则来不及积压，这个配置也会失去意义
 		conf.setProperty(ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, "5");
+		/*
+		SEND_BUFFER 调整的是内核的 `/proc/sys/net/core/wmem_max`
+		RECEIVE_BUFFER 调整的是内核的 `/proc/sys/net/core/rmem_max`
+		 */
 		conf.setProperty(ProducerConfig.SEND_BUFFER_CONFIG, "32768"); // TCP的缓冲区大小：netstat -natp中的 Send-Q 调整为 -1就会指望OS
 		conf.setProperty(ProducerConfig.RECEIVE_BUFFER_CONFIG, "32768"); // TCP的缓冲区大小：netstat -natp中的 Recv-Q 调整为 -1就会指望OS
 		return conf;
