@@ -5,7 +5,6 @@ public class Person {
 
 	public void m() {
 		age = 100;
-		age ++;
 	}
 
 }

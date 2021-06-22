@@ -15,7 +15,7 @@ public class Lesson02 {
 		conf.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
 		conf.setProperty(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "16384");
 		conf.setProperty(ProducerConfig.PARTITIONER_CLASS_CONFIG, DefaultPartitioner.class.getName());
-		conf.setProperty(ProducerConfig.BATCH_SIZE_CONFIG, "16384");//16k，要调整，分析msg大小，尽量出发批次发送，减少内存碎片和系统调用的复杂度
+		conf.setProperty(ProducerConfig.BATCH_SIZE_CONFIG, "16384"); //16k，要调整，分析msg大小，尽量出发批次发送，减少内存碎片和系统调用的复杂度
 		conf.setProperty(ProducerConfig.LINGER_MS_CONFIG, "0");
 		conf.setProperty(ProducerConfig.MAX_REQUEST_SIZE_CONFIG, "1048576");
 		conf.setProperty(ProducerConfig.BUFFER_MEMORY_CONFIG, "33554432");
