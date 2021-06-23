@@ -29,7 +29,7 @@ public class Lesson02 {
 		/*
 		SEND_BUFFER 调整的是内核的 `/proc/sys/net/core/wmem_max`
 		RECEIVE_BUFFER 调整的是内核的 `/proc/sys/net/core/rmem_max`
-		Kafka用的是Selector而不是Netty，response过来之后有转圈的线程handle
+		Kafka用的是Selector而不是Netty，response过来之后有转圈的线程handle。为什么不用Netty？这里留一个问题
 		 */
 		conf.setProperty(ProducerConfig.SEND_BUFFER_CONFIG, "32768"); // TCP的缓冲区大小：netstat -natp中的 Send-Q 调整为 -1就会指望OS
 		conf.setProperty(ProducerConfig.RECEIVE_BUFFER_CONFIG, "32768"); // TCP的缓冲区大小：netstat -natp中的 Recv-Q 调整为 -1就会指望OS
