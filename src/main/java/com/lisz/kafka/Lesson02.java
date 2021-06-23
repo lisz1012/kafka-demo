@@ -43,7 +43,7 @@ public class Lesson02 {
 		Future<RecordMetadata> future = producer.send(record);
 		// send()下面紧接着Future.get()的话，send就成了同步的，则batch的空间无法利用，每条必须发走才能继续下一循环
 		// 客户端像发送数据之前，要先完成元数据的更新，在waitOnMetadata里
-		// 分布式环境下，元数据更新是一件很重要的事情
+		// 分布式环境下，元数据更新是一件很重要的事情。NetworkClient的第1024行this.metadata.update(...)更新了元数据
 		Future<RecordMetadata> send = producer.send(record, new Callback() {
 			@Override
 			public void onCompletion(RecordMetadata metadata, Exception exception) {
