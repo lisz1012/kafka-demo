@@ -38,4 +38,4 @@ responseQueue是有数据的时候注册，processNewResponse只是注册事件
 
 selector.poll()关注的是读写事件
 
-selector.poll(long)内部：中间的 pollSelectionKeys 和和最后的 addToCompletedReceives 都修改了stagedReceives
+selector.poll(long)内部：中间的 pollSelectionKeys 和最后的 addToCompletedReceives 都修改了stagedReceives
