@@ -1,0 +1,41 @@
+框架中scheduler基本就是线程调度的语义
+
+Kafka两大要点：
+
+1. 跟外界如何通信
+2. 内部数据如何写磁盘
+
+未来看源码的时候，只要是现成的东西就先看一下run方法
+
+老知识：
+
+1. 输入read常注册
+2. 输出 write，有数据才注册
+
+好多个topic好多个Producer就有好多个socket，这时候每个socket都同时取一条数据（消息），放入RequestQueue，然后让Handler线程池去处理，下次再同时支取第一条，然后再放Request队列处理，就能既保证顺序有保证并行的效率了。维护了单个socket的有序性，不同socket之间的有序性不能维护。
+
+如果一个topic有多个生产者，且生产者在不同的屋里进程，所以，会有多个连   接进来，且都想写一个分区，那Kafka可以保证顺序吗？不行！要由同一个producer生产，以维护这个分区的有序性。生产者很多且对着一个分区有序产生消息的话，那就要在外界搞一个分布式事务，有生产方来控制多实例的执行顺序
+
+程序员用mv而不是rm删除文件系统里的东西，锅留给未来的人。
+
+mute就是：read本来是常注册，改为读一次之后就mute→把socket上的read事件取消注册，后面的消息被积压在了内核的Recv -Q里面，直到unmute，（写的时候按需写）为了保证有序，也按需读取
+
+unmute读事件是在processCompletedSends 中的 selector.completedSends.asScala.foreach { send ⇒ ... }这个callback里面做得，也就是说只有处理完了这个消息并send response之后，才会unmute
+
+两台计算机之间，内核之间完成的数据传递；内核跟app之间完成的IO模型。内核搬运数据的过程会协商缓冲空间的问题，TCP协议。
+
+tradeoff：有序性和整体的节奏，所以把来的数据压制在内核，以保证Producer的内核的知道这边积压的太多，就不往这边发数据了。所以在内核门口这个位置就不能让别人把broker自己冲垮了。同理，网管层要适当控制流量
+
+参数 `num.network.threads` 决定了有多少个Processors。Processor就好比Netty里的Worker
+
+Kafka VS Redis （6.x之后 Handler工作线程是一个，IO线程成多个，有序性的保证就不用mute/unmute了。一个客户端一个链接，指令是原子的，可靠的）。Redis的单线程好？还是Kafka的多线程好？
+
+世界上为什么有这么多中间件？一个中间件能搞定所有的事情吗？
+
+Kafka支持多项目组多topic的使用。Kafka只是个MQ，对数据不加工，只是线性追加写数据。Redis是KV的存储，会有一些集合之间的操作，交并差，如果多线程要加锁排斥。如果Kafka的topic和topic之间有什么计算的话，他也会使用单线程。Redis的单线程太香了。多部门并发量很大的时候，就使用Redis的集群多进程，但是损失了集合的各种操作。
+
+responseQueue是有数据的时候注册，processNewResponse只是注册事件
+
+selector.poll()关注的是读写事件
+
+selector.poll(long)内部：中间的 pollSelectionKeys 和和最后的 addToCompletedReceives 都修改了stagedReceives
