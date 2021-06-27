@@ -10,6 +10,7 @@ import java.util.concurrent.Future;
 public class Lesson02 {
 	public static Properties init() {
 		Properties conf = new Properties();
+		// 这个配置需要权衡数据一致性和吞吐量
 		conf.setProperty(ProducerConfig.ACKS_CONFIG, "0");
 		conf.setProperty(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
 		conf.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
