@@ -82,6 +82,7 @@ public class Lesson01 {
 		KafkaConsumer<String, String> consumer = new KafkaConsumer<String, String>(props);
 		// Kafka的Consumer回动态负载均衡：当Consumer个数有变化的时候可能会让出或者得到某些分区
 		consumer.subscribe(Arrays.asList("msb-items"), new ConsumerRebalanceListener() {
+			// 懒执行，不poll的时候不会执行
 			@Override
 			public void onPartitionsRevoked(Collection<TopicPartition> partitions) {
 				System.out.println("---onPartitionsRevoked");
@@ -90,6 +91,7 @@ public class Lesson01 {
 				}
 			}
 
+			// 懒执行，不poll的时候不会执行
 			@Override
 			public void onPartitionsAssigned(Collection<TopicPartition> partitions) {
 				System.out.println("---onPartitionsAssigned");
@@ -109,7 +111,7 @@ public class Lesson01 {
 
 		//自己填充HashMap，为每个分区倒退时间
 		/*
-			1.通过时间换算出offset，再通过seek来自定义偏移。seek是最值钱的
+			1.通过时间戳换算出offset，再通过seek来自定义偏移。seek是最值钱的
 			2。如果自己维护offset维护持久化。通过seek完成定点取
 		 */
 		for (TopicPartition topicPartition : assignment) {
@@ -161,6 +163,8 @@ public class Lesson01 {
 				Kafka保存数据的同时，还保存各条数据的索引，因为每一条数据的大小不同，也不是每条都写索引，而是分段，像跳表
 				还有通过时间戳（默认是producer生产的时间）的换算到索引offset再取数据
 				由于Kafka自身不加工数据，而是直接原样发走，所以她可以直接sendfile，减少了内核到app拷贝数据，再从app拷贝回内核的过程
+				ack=-1的时候, 所有的in-sync replicas broker的消息进度是一致的，到一定时候没同步的broker会被踢出ISR。Consumer只能消费到
+				指定数量的ISR都同步了的那个位置：High Water Mark
 				 */
 				for (TopicPartition partition : partitions) {
 					List<ConsumerRecord<String, String>> pRecords = records.records(partition);
