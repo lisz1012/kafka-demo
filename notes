@@ -28,11 +28,11 @@ tradeoff：有序性和整体的节奏，所以把来的数据压制在内核，
 
 参数 `num.network.threads` 决定了有多少个Processors。Processor就好比Netty里的Worker
 
-Kafka VS Redis （6.x之后 Handler工作线程是一个，IO线程成多个，有序性的保证就不用mute/unmute了。一个客户端一个链接，指令是原子的，可靠的）。Redis的单线程好？还是Kafka的多线程好？
+Kafka VS Redis （6.x之后 Handler工作线程是一个，IO线程成多个，加速从内核往应用程序的搬运。但工作线程还是只有一个。有序性的保证就不用mute/unmute了。一个客户端一个链接，指令是原子的，可靠的）。Redis的单线程好？还是Kafka的多线程好？
 
 世界上为什么有这么多中间件？一个中间件能搞定所有的事情吗？
 
-Kafka支持多项目组多topic的使用。Kafka只是个MQ，对数据不加工，只是线性追加写数据。Redis是KV的存储，会有一些集合之间的操作，交并差，如果多线程要加锁排斥。如果Kafka的topic和topic之间有什么计算的话，他也会使用单线程。Redis的单线程太香了。多部门并发量很大的时候，就使用Redis的集群多进程，但是损失了集合的各种操作。
+Kafka支持多项目组多topic的使用。Kafka只是个MQ，对数据不加工，只是线性追加写数据。Redis是KV的存储，会有一些集合之间的操作，交并差，如果多线程要加锁互斥。如果Kafka的topic和topic之间有什么计算的话，他也会使用单线程。Redis的单线程太香了。多部门并发量很大的时候，就使用Redis的集群多进程，但是损失了集合的各种操作。
 
 responseQueue是有数据的时候注册，processNewResponse只是注册事件
 
@@ -43,3 +43,17 @@ selector.poll(long)内部：中间的 pollSelectionKeys 和最后的 addToComple
 http长短连接：IO框架实现是否可以重复input（循环重复度发来的数据）
 
 通信：客户端带着请求的ID，且服务端相应请求的ID，这叫有状态。节点间通信的机制
+
+IO、线程、内存资源管理，是不同中间件的共同聚焦的问题，只不过解决方式不同。Kafka是IO最好的例子，她没有使用Netty框架
+
+内核和数据之间的事IO模型，内核内核之间是数据传递，内核协商Recv-Q、Send-Q的空间
+
+channel.write(buffer) 和 mmap.putInt()都只是写到了内核pagecache
+
+用副本代替磁盘的可靠性，kafka关于这个参数的说明就很说明问题：
+public static final String FLUSH_MESSAGES_INTERVAL_DOC = "This setting allows specifying an interval at " +
+        "which we will force an fsync of data written to the log. For example if this was set to 1 " +
+        "we would fsync after every message; if it were 5 we would fsync after every five messages. " +
+        "In general we recommend you not set this and use replication for durability and allow the " +
+        "operating system's background flush capabilities as it is more efficient. This setting can " +
+        "be overridden on a per-topic basis (see <a href=\"#topicconfigs\">the per-topic configuration section</a>).";
