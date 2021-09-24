@@ -60,4 +60,5 @@ public static final String FLUSH_MESSAGES_INTERVAL_DOC = "This setting allows sp
 靠内核脏页的刷写机制
 Kafka再消息数和Schedule的刷写interval上的默认设置都是Long.maxValue, app这一侧完全放弃刷写的机会，完全依赖内核了
 
-主从腹直肌群的Redis，主挂了，有没有持久化都必然触发全量数据同步
+主从腹直肌群的Redis，主挂了，有没有持久化都必然触发全量数据同步。想要减轻Master的负担，可以做无磁盘的RDB传输：Master跳过内存落地RDB的过程，
+直接从内存传输给从节点。Redis要不要设计实例大小？单实例不要搞得太大，因为会同步很久，本地多启动几个Redis都比一个好些
