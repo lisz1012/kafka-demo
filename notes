@@ -57,3 +57,5 @@ public static final String FLUSH_MESSAGES_INTERVAL_DOC = "This setting allows sp
         "In general we recommend you not set this and use replication for durability and allow the " +
         "operating system's background flush capabilities as it is more efficient. This setting can " +
         "be overridden on a per-topic basis (see <a href=\"#topicconfigs\">the per-topic configuration section</a>).";
+靠内核脏页的刷写机制
+Kafka再消息数和Schedule的刷写interval上的默认设置都是Long.maxValue, app这一侧完全放弃刷写的机会，完全依赖内核了
