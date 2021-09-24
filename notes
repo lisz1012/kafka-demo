@@ -48,7 +48,7 @@ IO、线程、内存资源管理，是不同中间件的共同聚焦的问题，
 
 内核和数据之间的事IO模型，内核内核之间是数据传递，内核协商Recv-Q、Send-Q的空间
 
-channel.write(buffer) 和 mmap.putInt()都只是写到了内核pagecache
+channel.write(buffer) （对于log）和 mmap.putInt() （对于logIndex和timestampIndex）都只是写到了内核pagecache
 
 用副本代替磁盘的可靠性，kafka关于这个参数的说明就很说明问题：
 public static final String FLUSH_MESSAGES_INTERVAL_DOC = "This setting allows specifying an interval at " +
