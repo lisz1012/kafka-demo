@@ -62,3 +62,6 @@ Kafka再消息数和Schedule的刷写interval上的默认设置都是Long.maxVal
 
 主从腹直肌群的Redis，主挂了，有没有持久化都必然触发全量数据同步。想要减轻Master的负担，可以做无磁盘的RDB传输：Master跳过内存落地RDB的过程，
 直接从内存传输给从节点。Redis要不要设计实例大小？单实例不要搞得太大，因为会同步很久，本地多启动几个Redis都比一个好些
+
+SocketServer的Processor类内部有个selector，receive之后mute，send ack之后unmute，这样既保证了有序性又能利用多线程并行处理其他没有被
+mute的selector（多路复用器）见Processor的run方法
