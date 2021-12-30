@@ -161,7 +161,7 @@ public class Lesson01 {
 				Kafka是MQ其业务特点决定了它可以使用磁盘的顺序读写的特性，这一点要比随机读写快很多
 				Kafka村数据的时候先存到pagecache（内存中），再异步刷盘，此时如果Consumer来拉取数据，则会很快
 				Kafka保存数据的同时，还保存各条数据的索引，因为每一条数据的大小不同，也不是每条都写索引，而是分段，像跳表
-				还有通过时间戳（默认是producer生产的时间）的换算到索引offset再取数据
+				还有通过时间戳（默认是producer生产的时间）的换算到索引offset再取数据，本质还是按照时间戳查询
 				由于Kafka自身不加工数据，而是直接原样发走，所以她可以直接sendfile，减少了内核到app拷贝数据，再从app拷贝回内核的过程
 				ack=-1的时候, 所有的in-sync replicas broker的消息进度是一致的，到一定时候没同步的broker会被踢出ISR。Consumer只能消费到
 				指定数量的ISR都同步了的那个位置：High Water Mark
