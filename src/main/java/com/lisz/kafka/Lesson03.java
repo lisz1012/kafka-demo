@@ -34,7 +34,7 @@ public class Lesson03 {
 		Future<RecordMetadata> send = producer.send(record);
 		RecordMetadata rm = send.get();
 		int partition = rm.partition();
-//		final List<PartitionInfo> partitionInfos = producer.partitionsFor("topic-1");
+		final List<PartitionInfo> partitionInfos = producer.partitionsFor("topic-1"); // 演示用
 		long offset = rm.offset();
 		System.out.println("key: " + record.key() + " val: " + record.value() + " partition: " + partition + " offset: " + offset + " timestamp: " + rm.timestamp());
 	}
