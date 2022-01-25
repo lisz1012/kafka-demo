@@ -36,7 +36,7 @@ public class RemoveChocolate {
 		return a4;
 	}
 
-	// 股票题，robinhood ！！！! 　动态规划
+	// 股票题，robinhood ！！！! 　动态规划！
 	private static List<Integer> seq(int n, int l, int h) {
 		if (h - l + 1 > n - 1) return Arrays.asList(-1);
 		List<Integer> res = new ArrayList<>();
