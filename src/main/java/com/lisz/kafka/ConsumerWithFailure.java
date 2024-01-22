@@ -10,13 +10,12 @@ import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.junit.Test;
 
-import java.io.IOException;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
-public class Lesson01 {
+public class ConsumerWithFailure {
 	/*
 	kafka-topics.sh --zookeeper hadoop-02:2181/kafka --create --topic msb-items  --partitions 2 --replication-factor 2
 	 */
@@ -27,7 +26,7 @@ public class Lesson01 {
 		props.setProperty(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG,
 				"hadoop-02:9092,hadoop-03:9092,hadoop-04:9092");
 		// Kafka是一个能够持久化数据的MQ，数据是以byte[], 不会对数据进行加工，所以双方要约定编解码
-		// kafka是一个app，可以使用0拷贝，sendfile实现快速数据消费.
+		// kafka是一个app，可以使用0拷贝，sendfile实现快速数据消费
 		props.setProperty(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
 				StringSerializer.class.getName());
 		props.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
