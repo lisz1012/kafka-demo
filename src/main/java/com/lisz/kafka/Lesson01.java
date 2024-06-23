@@ -185,7 +185,7 @@ public class Lesson01 {
 						map.put(topicPartition, offsetAndMetadata);
 						consumer.commitSync(map); //以一条记录为粒度提交offset, 最安全的
 					}
-					long poff = pRecords.get(pRecords.size() - 1).offset();
+					long poff = pRecords.get(pRecords.size() - 1).offset(); // 拿到最后一条记录的offset, 用来提交 offset
 					OffsetAndMetadata offsetAndMetadata = new OffsetAndMetadata(poff);
 					Map<TopicPartition, OffsetAndMetadata> map = new HashMap<>();
 					map.put(partition, offsetAndMetadata);
