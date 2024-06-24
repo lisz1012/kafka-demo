@@ -25,7 +25,7 @@ public class Lesson02 {
 		conf.setProperty(ProducerConfig.MAX_REQUEST_SIZE_CONFIG, "1048576");
 		conf.setProperty(ProducerConfig.BUFFER_MEMORY_CONFIG, "33554432");
 		conf.setProperty(ProducerConfig.MAX_BLOCK_MS_CONFIG, "60000");
-		// Batches打包之后先放到 InFlightRequests 然后通过客户端发出去，可以挤压5个没返回ack的请求
+		// Batches打包之后先放到 InFlightRequests 然后通过客户端发出去，可以挤压5个没返回ack的请求.
 		// 单词请求同步阻塞的时候这一个配置无意义。另一种情况是请求的数据量比较大，慢，而broker只返回一个很小的ack，快，则来不及积压，这个配置也会失去意义
 		conf.setProperty(ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, "5");
 		/*
