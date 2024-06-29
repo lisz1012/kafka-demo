@@ -14,7 +14,7 @@ public class Lesson02 {
 		conf.setProperty(ProducerConfig.ACKS_CONFIG, "0");
 		conf.setProperty(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
 		conf.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-		// 需要写着一句的最深层次的原因是新版本中，Kafka不把这个元数据存在zk里面了.
+		// 需要写着一句的最深层次的原因是新版本中，Kafka不把这个元数据存在zk里面了
 		conf.setProperty(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "16384");
 		conf.setProperty(ProducerConfig.PARTITIONER_CLASS_CONFIG, DefaultPartitioner.class.getName());
 		conf.setProperty(ProducerConfig.BATCH_SIZE_CONFIG, "16384"); //16k，要调整，分析msg大小，尽量触发批次发送，减少内存碎片和系统调用的复杂度。因为batch装不下一条大的记录的时候，就会高出一个超过config大小的batch，产生碎片。调整也能减少system call的复杂度
